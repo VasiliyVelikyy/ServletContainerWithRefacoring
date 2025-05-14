@@ -37,9 +37,6 @@
                     <version>9.4.20.v20190813</version>
                     <configuration>
                         <scanIntervalSeconds>10</scanIntervalSeconds>
-                        <webApp>
-                            <contextPath>/my-app</contextPath>
-                        </webApp>
                     </configuration>
                 </plugin>
                 <plugin>
