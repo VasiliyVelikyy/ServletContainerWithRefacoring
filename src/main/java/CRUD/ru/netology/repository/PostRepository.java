@@ -1,5 +1,6 @@
 package CRUD.ru.netology.repository;
 
+import CRUD.ru.netology.exception.NotFoundException;
 import CRUD.ru.netology.model.Post;
 
 import java.util.Collection;
@@ -7,6 +8,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static java.rmi.server.LogStream.log;
 
 // Stub
 public class PostRepository {
@@ -21,20 +24,25 @@ public class PostRepository {
         return allPosts.values();
     }
 
-    public Optional<Post> getById(long id) {
-        return Optional.ofNullable(allPosts.get(id));
+    public Post getById(long id) {
+        return Optional.ofNullable(allPosts.get(id))
+                .orElseThrow(NotFoundException::new);
     }
 
     public Post save(Post savePost) {
         if (savePost.getId() == 0) {
-            long id = idCounter.incrementAndGet();
-            savePost.setId(id);
-            allPosts.put(id, savePost);
-        } else if (savePost.getId() != 0) {
-            Long currentId = savePost.getId();
-            allPosts.put(currentId, savePost);
+            long newId = idCounter.incrementAndGet();
+            Post newPost = new Post(newId, savePost.getContent());
+            allPosts.put(newId, newPost);
+            return newPost;
+        } else {
+            return allPosts.compute(savePost.getId(), (id, existingPost) -> {
+                if (existingPost == null) {
+                    log("Post with id " + id + " not found");
+                }
+                return new Post(id, savePost.getContent()); // Неизменяемость
+            });
         }
-        return savePost;
     }
 
     public void removeById(long id) {
